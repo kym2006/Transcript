@@ -1,104 +1,139 @@
-import asyncio
-import datetime
-import json
-import logging
-from pathlib import Path
-import codecs
+from dotenv import load_dotenv
+load_dotenv()
+import os
+token = os.environ['TOKEN']
+import psutil
+import subprocess
 
+import logging 
+import datetime
+import textwrap
 import discord
+import random
+import io
+from contextlib import redirect_stdout
+import sys
+import traceback
+import asyncio
+import importlib
 from discord.ext import commands
 
-
-def config_load():
-    return json.load(codecs.open('data/config.json', 'r', 'utf-8-sig'))
-
-
-async def run():
-    """
-    Where the bot gets started. If you wanted to create an database connection pool or other session for the bot to use,
-    it's recommended that you create it here and pass it to the bot as a kwarg.
-    """
-
-    config = config_load()
-    bot = Bot(config=config,
-              description=config['description'])
+#Whitelisted users
+invite_link = "https://discord.com/oauth2/authorize?client_id=744372909363167314&scope=bot&permissions=257152"
+whitelist = [298661966086668290, 412969691276115968, 446290930723717120,685456111259615252,488283878189039626,723794074498367498]
+bot = commands.Bot(command_prefix = commands.when_mentioned_or('t!'))
+@bot.command(name = "exe", brief = "Execute Python code", usage = "<code>", description = "Executes Python code, like a Python interpreter. Some modules and functions are banned, find them on the github! (https://github.com/kym2006/random.bot)")
+async def exe(ctx, *, body: str):    
+    if ctx.author.id not in whitelist and ctx.author.id != 298661966086668290:
+        try: 
+            await ctx.send("You have no permission HAHAHAHAHHA HAHAHAHAHAHHAH")
+            return 
+        except:
+            return
+    
+    env = {
+        "bot": bot,
+        "ctx": ctx,
+        "channel": ctx.channel,
+        "author": ctx.author,
+        "guild": ctx.guild,
+        "message": ctx.message,
+        "whitelist": whitelist
+    }  
+    stdout = io.StringIO()  
+    #env.update(globals())
+    #new env: only send (ctx.send)
+    '''
+    env = {
+        "ctx": ctx,
+    }
+    '''
+    exec("", env)
+    to_compile = f'async def func():\n  try:\n{textwrap.indent(body, "    ")}\n  except:\n    raise'
     try:
-        await bot.start(config['token'])
-    except KeyboardInterrupt:
-        await bot.logout()
-
-
-class Bot(commands.Bot):
-    def __init__(self, **kwargs):
-        super().__init__(
-            command_prefix=self.get_prefix_,
-            description=kwargs.pop('description')
+        exec(to_compile, env)
+    except:
+        await ctx.send(
+            embed=discord.Embed(
+                description=f"```py\n{traceback.format_exc()}\n```", colour=discord.Color.red(),
+            )
         )
-        self.start_time = None
-        self.app_info = None
+        return
+    func = env["func"]
+    try:
+        with redirect_stdout(stdout):
+            ret = await func()
+    except (AttributeError, Exception, BaseException):
+        await ctx.send(
+            embed=discord.Embed(
+                description=f"```py\n{stdout.getvalue()}{traceback.format_exc()}\n```",colour=discord.Color.red(),
+            )
+        )
+    else:
+        value = ret
+        try:
+            await ctx.message.add_reaction("✅")
+        except discord.Forbidden:
+            pass
 
-        self.loop.create_task(self.track_start())
-        self.loop.create_task(self.load_all_extensions())
-
-    async def track_start(self):
-        """
-        Waits for the bot to connect to discord and then records the time.
-        Can be used to work out uptime.
-        """
-        await self.wait_until_ready()
-        self.start_time = datetime.datetime.utcnow()
-
-    async def get_prefix_(self, bot, message):
-        """
-        A coroutine that returns a prefix.
-
-        I have made this a coroutine just to show that it can be done. If you needed async logic in here it can be done.
-        A good example of async logic would be retrieving a prefix from a database.
-        """
-        prefix = ['!']
-        return commands.when_mentioned_or(*prefix)(bot, message)
-
-    async def load_all_extensions(self):
-        """
-        Attempts to load all .py files in /cogs/ as cog extensions
-        """
-        await self.wait_until_ready()
-        await asyncio.sleep(1)  # ensure that on_ready has completed and finished printing
-        cogs = [x.stem for x in Path('cogs').glob('*.py')]
-        for extension in cogs:
+        if stdout.getvalue():
             try:
-                self.load_extension(f'cogs.{extension}')
-                print(f'loaded {extension}')
-            except Exception as e:
-                error = f'{extension}\n {type(e).__name__} : {e}'
-                print(f'failed to load extension {error}')
-            print('-' * 10)
+              if value != None:
+                  await ctx.send(
+                      embed=discord.Embed(
+                          description=f"```py\n{stdout.getvalue()}{value}\n```", colour=discord.Color.green()
+                      )
+                  )
+              else:
+                  await ctx.send(
+                      embed=discord.Embed(
+                          description=f"```py\n{stdout.getvalue()}\n```", colour=discord.Color.green()
+                      )
+                  )
+            except:
+              await ctx.send(
+                embed=discord.Embed(    
+                    description=f"```py\n{traceback.format_exc()[-5000:]}\n```", colour=discord.Color.red()
+                )
+              )
+        else:
+            try: 
+                #will not send if no return value
+                if value != None:
+                    await ctx.send(
+                        embed=discord.Embed(
+                            description=f"```py\n{value}\n```", colour=discord.Color.green()
+                        )
+                    )
+            except:
+              await ctx.send(
+                embed=discord.Embed(    
+                    description=f"```py\n{traceback.format_exc()[-5000:]}\n```", colour=discord.Color.red()
+                )
+              )   
 
-    async def on_ready(self):
-        """
-        This event is called every time the bot connects or resumes connection.
-        """
-        print('-' * 10)
-        self.app_info = await self.application_info()
-        print(f'Logged in as: {self.user.name}\n'
-              f'Using discord.py version: {discord.__version__}\n'
-              f'Owner: {self.app_info.owner}\n')
-        print('-' * 10)
+@bot.command(name = "invite", brief = "Sends invite link", description = "Sends the invite link to this bot!", usage = "")
+async def invite(ctx):
+    await ctx.send(
+            embed=discord.Embed(
+                description=f"Invite this bot: {invite_link}", colour=discord.Color.green()
+        )
+    )
+    await ctx.send(
+            embed=discord.Embed(
+                description=f"Join our support server: https://discord.gg/6yEzEBy", colour=discord.Color.green()
+        )
+    )
 
-    async def on_message(self, message):
-        """
-        This event triggers on every message received by the bot. Including one's that it sent itself.
+@bot.command(name="export", brief="export channel history")
+async def export(ctx):
+    f=open(f"c{ctx.channel.id}.txt", "a+")
+    await ctx.send(file=discord.File(f"c{ctx.channel.id}.txt"))
 
-        If you wish to have multiple event listeners they can be added in other cogs. All on_message listeners should
-        always ignore bots.
-        """
-        if message.author.bot:
-            return  # ignore all bots
-        await self.process_commands(message)
+@bot.event
+async def on_message(message):
+    f=open(f"c{message.channel.id}.txt", "a+")
+    f.write(f"{message.author.name}#{message.author.discriminator}: {message.content}\n")
+    await bot.process_commands(message)
 
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+bot.run(token)
