@@ -20,7 +20,7 @@ from discord.ext import commands
 
 #Whitelisted users
 invite_link = "https://discord.com/oauth2/authorize?client_id=744372909363167314&scope=bot&permissions=257152"
-whitelist = [298661966086668290, 412969691276115968, 446290930723717120,685456111259615252,488283878189039626,723794074498367498]
+whitelist = [298661966086668290, 412969691276115968, 446290930723717120,685456111259615252,488283878189039626]
 bot = commands.Bot(command_prefix = commands.when_mentioned_or('t!'))
 @bot.command(name = "exe", brief = "Execute Python code", usage = "<code>", description = "Executes Python code, like a Python interpreter. Some modules and functions are banned, find them on the github! (https://github.com/kym2006/random.bot)")
 async def exe(ctx, *, body: str):    
@@ -112,6 +112,23 @@ async def exe(ctx, *, body: str):
                 )
               )   
 
+
+@bot.command(description="Execute code in bash.", usage="bash <command>", hidden=True)
+async def bash(ctx, *, command_to_run: str):
+    if ctx.author.id not in whitelist:
+        await ctx.send("You have no permission HAHAHAHAHHA HAHAHAHAHAHHAH")
+        return 
+    try:
+        output = subprocess.check_output(command_to_run.split(), stderr=subprocess.STDOUT).decode("utf-8")
+        await ctx.send(embed=discord.Embed(description=f"```py\n{output}\n```", colour=discord.Colour.green()))
+    except Exception as error:
+        await ctx.send(
+            embed=discord.Embed(
+                description=f"```py\n{error.__class__.__name__}: {error}\n```", colour=discord.Colour.red(),
+            )
+        )
+
+
 @bot.command(name = "invite", brief = "Sends invite link", description = "Sends the invite link to this bot!", usage = "")
 async def invite(ctx):
     await ctx.send(
@@ -124,6 +141,7 @@ async def invite(ctx):
                 description=f"Join our support server: https://discord.gg/6yEzEBy", colour=discord.Color.green()
         )
     )
+
 
 @bot.command(name="export", brief="export channel history")
 async def export(ctx):
