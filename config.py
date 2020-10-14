@@ -41,7 +41,7 @@ initial_extensions = [
 ]
 
 # Channels to send logs
-join_channel = 744376264718155812
+join_channel = 744376264718155814
 event_channel = 744376264718155815
 admin_channel = 744376264860893244
 
