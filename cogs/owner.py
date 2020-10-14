@@ -33,7 +33,7 @@ class Owner(commands.Cog):
     @commands.command(description="Load a module.", usage="load <cog>", hidden=True)
     async def load(self, ctx, *, cog: str):
         try:
-            self.bot.load_extension(cog)
+            self.bot.load_extension(f"cogs.{cog}")
             await ctx.send(
                 embed=discord.Embed(description="Successfully loaded the module.", colour=self.bot.primary_colour)
             )
@@ -44,7 +44,7 @@ class Owner(commands.Cog):
     @commands.command(description="Unload a module.", usage="unload <cog>", hidden=True)
     async def unload(self, ctx, *, cog: str):
         try:
-            self.bot.unload_extension(cog)
+            self.bot.unload_extension(f"cogs.{cog}")
             await ctx.send(
                 embed=discord.Embed(description="Successfully unloaded the module.", colour=self.bot.primary_colour)
             )
@@ -55,8 +55,8 @@ class Owner(commands.Cog):
     @commands.command(description="Reload a module.", usage="reload <cog>", hidden=True)
     async def reload(self, ctx, *, cog: str):
         try:
-            self.bot.unload_extension(cog)
-            self.bot.load_extension(cog)
+            self.bot.unload_extension(f"cogs.{cog}")
+            self.bot.load_extension(f"cogs.{cog}")
             await ctx.send(
                 embed=discord.Embed(description="Successfully reloaded the module.", colour=self.bot.primary_colour)
             )
