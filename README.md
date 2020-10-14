@@ -1,2 +1,3 @@
 ## Transcript
-Transcript of your server :)
+
+## A bot that ensures those deleted messages aren't going anywhere 😉
