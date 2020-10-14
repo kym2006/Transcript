@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-token = "NzQ0MzcyOTA5MzYzMTY3MzE0.XziRSw.hoAZDGsjdG88eYgKQTNkpwBx2VM"  # os.getenv("TOKEN")
+token = os.getenv("TOKEN")
 
 # The default prefix for commands
 default_prefix = "t!"
