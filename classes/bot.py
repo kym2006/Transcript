@@ -15,6 +15,7 @@ class Transcript(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.start_time = datetime.datetime.utcnow()
+        self.version = version
 
     @property
     def uptime(self):
