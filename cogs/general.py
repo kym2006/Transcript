@@ -65,7 +65,7 @@ class General(commands.Cog):
         )
         page.add_field(
             name="Getting Started",
-            value="For a full list of commands, see `{ctx.prefix}help`.",
+            value=f"For a full list of commands, see `{ctx.prefix}help`.",
             inline=False,
         )
         all_pages.append(page)
