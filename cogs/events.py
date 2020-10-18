@@ -86,7 +86,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        with open(f"c{message.channel.id}.transcript", "a+") as f:
+        with open(f"c{message.channel.id}.txt", "a+") as f:
             f.write(f"{message.author.name}#{message.author.discriminator}: {message.content}\n")
         if message.author.bot:
             return
