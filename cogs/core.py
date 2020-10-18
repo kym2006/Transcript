@@ -12,7 +12,7 @@ class Core(commands.Cog):
 
     @commands.command(description="Exports channel history")
     async def export(self, ctx):
-        with open(f"c{ctx.channel.id}.transcript"):
+        with open(f"c{ctx.channel.id}.txt"):
             await ctx.send("Here's the transcript!", file=discord.File(f"c{ctx.channel.id}.transcript"))
 
 
