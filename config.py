@@ -8,7 +8,7 @@ load_dotenv()
 token = os.getenv("TOKEN")
 
 # The default prefix for commands
-default_prefix = "t!"
+default_prefix = "t="
 
 # Status of the bot
 activity = f"{default_prefix}help"
